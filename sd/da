@@ -151,23 +151,23 @@ local function toggleAutoFarm()
                 findSpawnBoxes()
                 
                 if #spawnBoxes == 0 then
-                    humanoidRootPart.CFrame = CFrame.new(platformPosition + Vector3.new(0, 6.5, 0))
+                    humanoidRootPart.CFrame = CFrame.new(platformPosition + Vector3.new(0, 3.5, 0))
                     wait(0.5)
                 else
                     for _, base in pairs(spawnBoxes) do
                         if not autoFarmEnabled then break end
                         humanoidRootPart.CFrame = base.CFrame + Vector3.new(0, 2.5, 0)
                         wait(0.4)
-                        humanoidRootPart.CFrame = CFrame.new(platformPosition + Vector3.new(0, 5, 0))
+                        humanoidRootPart.CFrame = CFrame.new(platformPosition + Vector3.new(0, 3.5, 0))
                         wait(0.4)
                     end
                 end
             end
-            humanoidRootPart.CFrame = CFrame.new(platformPosition + Vector3.new(0, 5, 0))
+            humanoidRootPart.CFrame = CFrame.new(platformPosition + Vector3.new(0, 3.5, 0))
             debounce = false
         end)
     else
-        humanoidRootPart.CFrame = CFrame.new(platformPosition + Vector3.new(0, 5, 0))
+        humanoidRootPart.CFrame = CFrame.new(platformPosition + Vector3.new(0, 3.5, 0))
         wait(cooldown)
         debounce = false
     end
