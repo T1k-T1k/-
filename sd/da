@@ -163,11 +163,11 @@ local function toggleAutoFarm()
                     end
                 end
             end
-            humanoidRootPart.CFrame = CFrame.new(platformPosition)
+            humanoidRootPart.CFrame = CFrame.new(platformPosition + Vector3.new(0, 5, 0))
             debounce = false
         end)
     else
-        humanoidRootPart.CFrame = CFrame.new(platformPosition)
+        humanoidRootPart.CFrame = CFrame.new(platformPosition + Vector3.new(0, 5, 0))
         wait(cooldown)
         debounce = false
     end
