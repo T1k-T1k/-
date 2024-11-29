@@ -151,7 +151,7 @@ local function toggleAutoFarm()
                 findSpawnBoxes()
                 
                 if #spawnBoxes == 0 then
-                    humanoidRootPart.CFrame = CFrame.new(platformPosition + Vector3.new(0, 10, 0))
+                    humanoidRootPart.CFrame = CFrame.new(platformPosition + Vector3.new(0, 6.5, 0))
                     wait(0.5)
                 else
                     for _, base in pairs(spawnBoxes) do
