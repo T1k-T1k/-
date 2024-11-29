@@ -10,8 +10,13 @@ local mmcDevsModel = workspace:FindFirstChild("Map") and workspace.Map:FindFirst
 local spawnBoxes = {}
 local debounce = false
 local platform
-local platformPosition = Vector3.new(500, 506.5, 500)
+local platformPosition = Vector3.new(500, 500, 500)
 local cooldown = 5
+local tpHeightOffset = 20  -- Смещение по Y для телепортации выше
+
+local function teleportToPlatform()
+    humanoidRootPart.CFrame = CFrame.new(platformPosition + Vector3.new(0, tpHeightOffset, 0))
+end
 
 local function createPlatform()
     -- Проверяем, если платформы нет, то создаем
