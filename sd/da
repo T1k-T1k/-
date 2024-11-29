@@ -6,7 +6,7 @@ local proximityPromptService = game:GetService("ProximityPromptService")
 
 local autoFarmEnabled = false
 local tpCooldown = false
-local mmcDevsModel = workspace:FindFirstChild("Map"):FindFirstChild("NPCs"):FindFirstChild("AMM_Devs")
+local mmcDevsModel = workspace:FindFirstChild("Map") and workspace.Map:FindFirstChild("NPCs") and workspace.Map.NPCs:FindFirstChild("AMM_Devs")
 local spawnBoxes = {}
 local debounce = false
 local platform
@@ -14,10 +14,11 @@ local platformPosition = Vector3.new(500, 503.5, 500)
 local cooldown = 5
 
 local function createPlatform()
+    -- Проверяем, если платформы нет, то создаем
     if not platform then
         platform = Instance.new("Part")
         platform.Size = Vector3.new(6, 1, 6)
-        platform.Position = Vector3.new(500, 500, 500)
+        platform.Position = platformPosition
         platform.Anchored = true
         platform.CanCollide = true
         platform.BrickColor = BrickColor.new("White")
@@ -101,9 +102,20 @@ tpText.TextColor3 = Color3.fromRGB(255, 255, 255)
 tpText.BackgroundTransparency = 1
 tpText.TextScaled = true
 
+-- Переменная для отслеживания состояния сворачивания
+local isMinimized = false
+
+minimizeButton.MouseButton1Click:Connect(function()
+    isMinimized = not isMinimized
+    -- Анимация изменения размера панели
+    local newSize = isMinimized and UDim2.new(1, 0, 0, 0) or UDim2.new(1, 0, 0, 150)
+    local tween = tweenService:Create(sliderFrame, TweenInfo.new(0.5), {Size = newSize})
+    tween:Play()
+end)
+
 local function findSpawnBoxes()
     spawnBoxes = {}
-    local spawnPointsFolder = workspace:WaitForChild("Map"):FindFirstChild("spawnPoints")
+    local spawnPointsFolder = workspace:FindFirstChild("Map"):FindFirstChild("spawnPoints")
     if spawnPointsFolder then
         for _, boxFolder in pairs(spawnPointsFolder:GetChildren()) do
             if boxFolder:IsA("Folder") and boxFolder.Name == "Box" then
@@ -175,17 +187,11 @@ end)
 tpButton.MouseButton1Click:Connect(function()
     if tpCooldown then return end
     tpCooldown = true
-    task.delay(2.5, function() tpCooldown = false end)
-
-    if mmcDevsModel and mmcDevsModel.PrimaryPart then
-        humanoidRootPart.CFrame = mmcDevsModel.PrimaryPart.CFrame + Vector3.new(0, 3, -3)
+    task.delay(2.5, function()
+        tpCooldown = false
+    end)
+    
+    if mmcDevsModel then
+        humanoidRootPart.CFrame = mmcDevsModel.PrimaryPart.CFrame + Vector3.new(0, 2, 0)
     end
-end)
-
-local isMinimized = false
-minimizeButton.MouseButton1Click:Connect(function()
-    isMinimized = not isMinimized
-    local newSize = isMinimized and UDim2.new(1, 0, 0, 0) or UDim2.new(1, 0, 0, 150)
-    local tween = tweenService:Create(sliderFrame, TweenInfo.new(0.5), {Size = newSize})
-    tween:Play()
 end)
