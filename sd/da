@@ -1,8 +1,8 @@
 local player = game.Players.LocalPlayer
 local character = player.Character or player.CharacterAdded:Wait()
-local humanoidRootPart = character:WaitForChild("HumanoidRootPart")
 local tweenService = game:GetService("TweenService")
 local proximityPromptService = game:GetService("ProximityPromptService")
+local humanoidRootPart = game.Players.LocalPlayer.Character:WaitForChild("HumanoidRootPart")
 
 local autoFarmEnabled = false
 local tpCooldown = false
@@ -113,33 +113,64 @@ minimizeButton.MouseButton1Click:Connect(function()
     tween:Play()
 end)
 
--- Автоматическое нажатие клавиши E для взаимодействия
+-- Функция для имитации удержания клавиши
 local function simulateKeyPress(prompt)
-    while prompt.Enabled and autoFarmEnabled do
-        task.wait(0.17) -- Небольшая задержка между "нажатиями"
-        prompt:InputHoldBegin() -- Начало удержания
-        task.wait(0.17) -- Время удержания
-        prompt:InputHoldEnd() -- Конец удержания
-    end
-end
-
--- Обработка появления новых ProximityPrompt в зоне действия игрока
-local function onPromptShown(prompt)
-    if autoFarmEnabled then
-        task.spawn(function() simulateKeyPress(prompt) end)
-    end
-end
-
--- Включение/выключение всех ProximityPrompt в зависимости от состояния автофарма
-local function toggleProximityPrompts(state)
-    for _, prompt in pairs(workspace:GetDescendants()) do
-        if prompt:IsA("ProximityPrompt") then
-            prompt.Enabled = state
+    while autoFarmEnabled and prompt.Enabled do
+        task.wait(0.11) -- Небольшая задержка между "нажатиями"
+        if prompt.Enabled then
+            -- Имитация нажатия на ProximityPrompt
+            prompt:InputHoldBegin() -- Начало удержания
+            task.wait(0.11) -- Время удержания
+            prompt:InputHoldEnd() -- Конец удержания
         end
     end
 end
 
-ProximityPromptService.PromptShown:Connect(onPromptShown)
+-- Функция для обновления состояния всех ProximityPrompt в рабочем пространстве
+local function updateProximityPrompts()
+    -- Ищем объект Base в нужной иерархии
+    local spawnPointsFolder = workspace:FindFirstChild("Map"):FindFirstChild("spawnPoints")
+    local baseFound = false  -- Флаг для проверки, найден ли Base
+
+    if spawnPointsFolder then
+        for _, boxFolder in pairs(spawnPointsFolder:GetChildren()) do
+            if boxFolder:IsA("Folder") and boxFolder.Name == "Box" then
+                for _, part in pairs(boxFolder:GetChildren()) do
+                    if part:IsA("Part") then
+                        local boxModel = part:FindFirstChild("Box")
+                        if boxModel and boxModel:IsA("Model") then
+                            local base = boxModel:FindFirstChild("Base")
+                            if base and base:IsA("MeshPart") then
+                                baseFound = true  -- Если Base найден, установим флаг в true
+                                break  -- Прерываем цикл, как только нашли Base
+                            end
+                        end
+                    end
+                end
+            end
+        end
+    end
+
+    -- Если Base найден, начинаем взаимодействовать с ProximityPrompt
+    if baseFound then
+        for _, descendant in pairs(workspace:GetDescendants()) do
+            if descendant:IsA("ProximityPrompt") then
+                -- Мы только меняем состояние ProximityPrompt, но не удаляем их
+                if autoFarmEnabled then
+                    -- Включаем ProximityPrompt
+                    descendant.Enabled = true
+                    -- Имитируем нажатие
+                    task.spawn(function()
+                        simulateKeyPress(descendant)
+                    end)
+                else
+                    -- Выключаем ProximityPrompt
+                    descendant.Enabled = false
+                end
+            end
+        end
+    end
+end
 
 local function findSpawnBoxes()
     spawnBoxes = {}
@@ -169,8 +200,6 @@ local function toggleAutoFarm()
 
     autoFarmEnabled = not autoFarmEnabled
 
-    toggleProximityPrompts(autoFarmEnabled) -- Управление состоянием ProximityPrompt
-
     local targetPosition = autoFarmEnabled and UDim2.new(0.6, 0, 0, 0) or UDim2.new(0, 0, 0, 0)
     local tween = tweenService:Create(toggleButton, TweenInfo.new(0.5), {Position = targetPosition})
     tween:Play()
@@ -178,6 +207,8 @@ local function toggleAutoFarm()
     if autoFarmEnabled then
         task.spawn(function()
             while autoFarmEnabled do
+                updateProximityPrompts()
+                wait(0.1)
                 findSpawnBoxes()
                 
                 if #spawnBoxes == 0 then
