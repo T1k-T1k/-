@@ -3,6 +3,7 @@ local character = player.Character or player.CharacterAdded:Wait()
 local tweenService = game:GetService("TweenService")
 local proximityPromptService = game:GetService("ProximityPromptService")
 local humanoidRootPart = game.Players.LocalPlayer.Character:WaitForChild("HumanoidRootPart")
+local UserInputService = game:GetService("UserInputService")
 
 local autoFarmEnabled = false
 local tpCooldown = false
@@ -113,12 +114,25 @@ minimizeButton.MouseButton1Click:Connect(function()
     tween:Play()
 end)
 
--- Функция для имитации удержания клавиши
+-- Функция для имитации удержания клавиши (для ПК)
 local function simulateKeyPress(prompt)
     while autoFarmEnabled and prompt.Enabled do
         task.wait(0.11) -- Небольшая задержка между "нажатиями"
         if prompt.Enabled then
             -- Имитация нажатия на ProximityPrompt
+            prompt:InputHoldBegin() -- Начало удержания
+            task.wait(0.11) -- Время удержания
+            prompt:InputHoldEnd() -- Конец удержания
+        end
+    end
+end
+
+-- Функция для обработки касания на мобильных устройствах
+local function handleTouchInput(prompt)
+    while autoFarmEnabled and prompt.Enabled do
+        task.wait(0.11) -- Небольшая задержка между "нажатиями"
+        if prompt.Enabled then
+            -- Обработаем касание экрана как нажатие на ProximityPrompt
             prompt:InputHoldBegin() -- Начало удержания
             task.wait(0.11) -- Время удержания
             prompt:InputHoldEnd() -- Конец удержания
@@ -159,10 +173,17 @@ local function updateProximityPrompts()
                 if autoFarmEnabled then
                     -- Включаем ProximityPrompt
                     descendant.Enabled = true
-                    -- Имитируем нажатие
-                    task.spawn(function()
-                        simulateKeyPress(descendant)
-                    end)
+                    -- Если это мобильное устройство, обрабатываем через касание
+                    if UserInputService.TouchEnabled then
+                        task.spawn(function()
+                            handleTouchInput(descendant)  -- Взаимодействие с касанием
+                        end)
+                    else
+                        -- Имитируем нажатие на ПК
+                        task.spawn(function()
+                            simulateKeyPress(descendant)
+                        end)
+                    end
                 else
                     -- Выключаем ProximityPrompt
                     descendant.Enabled = false
