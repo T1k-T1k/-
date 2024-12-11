@@ -113,6 +113,34 @@ minimizeButton.MouseButton1Click:Connect(function()
     tween:Play()
 end)
 
+-- Автоматическое нажатие клавиши E для взаимодействия
+local function simulateKeyPress(prompt)
+    while prompt.Enabled and autoFarmEnabled do
+        task.wait(0.17) -- Небольшая задержка между "нажатиями"
+        prompt:InputHoldBegin() -- Начало удержания
+        task.wait(0.17) -- Время удержания
+        prompt:InputHoldEnd() -- Конец удержания
+    end
+end
+
+-- Обработка появления новых ProximityPrompt в зоне действия игрока
+local function onPromptShown(prompt)
+    if autoFarmEnabled then
+        task.spawn(function() simulateKeyPress(prompt) end)
+    end
+end
+
+-- Включение/выключение всех ProximityPrompt в зависимости от состояния автофарма
+local function toggleProximityPrompts(state)
+    for _, prompt in pairs(workspace:GetDescendants()) do
+        if prompt:IsA("ProximityPrompt") then
+            prompt.Enabled = state
+        end
+    end
+end
+
+ProximityPromptService.PromptShown:Connect(onPromptShown)
+
 local function findSpawnBoxes()
     spawnBoxes = {}
     local spawnPointsFolder = workspace:FindFirstChild("Map"):FindFirstChild("spawnPoints")
@@ -140,6 +168,8 @@ local function toggleAutoFarm()
     debounce = true
 
     autoFarmEnabled = not autoFarmEnabled
+
+    toggleProximityPrompts(autoFarmEnabled) -- Управление состоянием ProximityPrompt
 
     local targetPosition = autoFarmEnabled and UDim2.new(0.6, 0, 0, 0) or UDim2.new(0, 0, 0, 0)
     local tween = tweenService:Create(toggleButton, TweenInfo.new(0.5), {Position = targetPosition})
